@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enviar Mensagem</title>
+  <title>Envie sua Mensagem</title>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -47,24 +48,27 @@
     <input type="text" id="name" placeholder="Seu nome" required />
     <input type="email" id="email" placeholder="Seu e-mail" required />
     <textarea id="message" placeholder="Sua mensagem" required></textarea>
+    <input type="file" id="file" />
     <button type="submit">Enviar</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBEDLuCXNGP3MgnWk3ME6GvcbIZJshCnPk",
       authDomain: "reclameaqui-45e4a.firebaseapp.com",
       projectId: "reclameaqui-45e4a",
-      storageBucket: "reclameaqui-45e4a.firebasestorage.app",
+      storageBucket: "reclameaqui-45e4a.appspot.com",
       messagingSenderId: "668495047114",
       appId: "1:668495047114:web:44160fc21b985004cec733"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const form = document.getElementById("messageForm");
 
@@ -73,19 +77,32 @@
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const message = document.getElementById("message").value;
+      const file = document.getElementById("file").files[0];
+
+      let fileUrl = "";
 
       try {
+        // Se tiver arquivo, envia para o Storage
+        if (file) {
+          const fileRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+          await uploadBytes(fileRef, file);
+          fileUrl = await getDownloadURL(fileRef);
+        }
+
+        // Envia os dados para o Firestore
         await addDoc(collection(db, "mensagens"), {
           nome: name,
           email: email,
           mensagem: message,
+          arquivo: fileUrl || null,
           timestamp: serverTimestamp()
         });
+
         alert("Mensagem enviada com sucesso!");
         form.reset();
       } catch (error) {
-        alert("Erro ao enviar: " + error.message);
         console.error("Erro:", error);
+        alert("Erro ao enviar: " + error.message);
       }
     });
   </script>
