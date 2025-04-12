@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ReclameAqui - Envio de Mensagem</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #f5f5f5;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h2 { text-align: center; }
+    label { display: block; margin-top: 15px; }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background-color: #ff6600;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Envie sua mensagem</h2>
+  <form id="form">
+    <label>Seu nome:</label>
+    <input type="text" id="nome" required>
+
+    <label>Mensagem:</label>
+    <textarea id="mensagem" required></textarea>
+
+    <label>Arquivo (opcional):</label>
+    <input type="file" id="arquivo">
+
+    <button type="submit">Enviar</button>
+    <p id="status"></p>
+  </form>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBEDUcXNGP3MgWk3ME66GvbcIZJshCnPk",
+      authDomain: "reclameaqui-45e4a.firebaseapp.com",
+      projectId: "reclameaqui-45e4a",
+      storageBucket: "reclameaqui-45e4a.appspot.com",
+      messagingSenderId: "664895047114",
+      appId: "1:664895047114:web:4416ef21b98504e4aec733"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value;
+      const mensagem = document.getElementById("mensagem").value;
+      const arquivo = document.getElementById("arquivo").files[0];
+      const status = document.getElementById("status");
+
+      try {
+        let arquivoURL = "";
+        if (arquivo) {
+          const storageRef = storage.ref().child("uploads/" + arquivo.name);
+          await storageRef.put(arquivo);
+          arquivoURL = await storageRef.getDownloadURL();
+        }
+
+        await db.collection("mensagens").add({
+          nome,
+          mensagem,
+          arquivoURL,
+          timestamp: new Date()
+        });
+
+        status.textContent = "Mensagem enviada com sucesso!";
+        status.style.color = "green";
+        document.getElementById("form").reset();
+      } catch (err) {
+        status.textContent = "Erro ao enviar: " + err.message;
+        status.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
