@@ -45,7 +45,7 @@
 <body>
   <h2>Envie sua mensagem</h2>
   <form id="messageForm">
-    <input type="text" id="name" placeholder="Seu nome"/>
+    <input type="text" id="name" placeholder="Seu nome" />
     <textarea id="message" placeholder="Sua mensagem" required></textarea>
     <input type="file" id="file" />
     <button type="submit">Enviar</button>
@@ -74,24 +74,20 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
       const message = document.getElementById("message").value;
       const file = document.getElementById("file").files[0];
 
       let fileUrl = "";
 
       try {
-        // Se tiver arquivo, envia para o Storage
         if (file) {
           const fileRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
           await uploadBytes(fileRef, file);
           fileUrl = await getDownloadURL(fileRef);
         }
 
-        // Envia os dados para o Firestore
         await addDoc(collection(db, "mensagens"), {
           nome: name,
-          email: email,
           mensagem: message,
           arquivo: fileUrl || null,
           timestamp: serverTimestamp()
